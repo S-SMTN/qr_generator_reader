@@ -3,9 +3,12 @@ black==26.5.1
 click==8.4.1
 Django==6.0.6
 mypy_extensions==1.1.0
+numpy==2.4.6
+opencv-python==4.13.0.92
 packaging==26.2
 pathspec==1.1.1
 platformdirs==4.10.0
 python-dotenv==1.2.2
 pytokens==0.4.1
+qrcode==8.2
 sqlparse==0.5.5

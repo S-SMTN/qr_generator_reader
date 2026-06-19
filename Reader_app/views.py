@@ -1,8 +1,9 @@
 import base64
 from io import BytesIO
 import cv2
+from qreader import QReader
 
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpRequest
 from django.views.generic import TemplateView
 import secrets
 import qrcode
@@ -34,7 +35,7 @@ class QrCreateView(TemplateView):
 class QrRead(TemplateView):
     template_name = "qr_scan.html"
 
-    def post(self, request):
+    def post(self, request: HttpRequest) -> HttpResponse:
         image_data_url = request.POST.get("image")
 
         if not image_data_url:
@@ -43,20 +44,37 @@ class QrRead(TemplateView):
         image_data = base64.b64decode(image_data_url.split(",")[1])
         np_arr = np.frombuffer(image_data, np.uint8)
         img = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
-        data = self.qrcode_reader(img)
 
-        if not data:
+        data = self.cv2_qr_decode(img)
+
+        if data is None:
+            data = self.qreader_qr_decode(img)
+
+        if data is None:
             return HttpResponse("No QR code found!")
 
         return HttpResponse(data)
 
     @staticmethod
-    def qrcode_reader(img):
+    def cv2_qr_decode(img: np.ndarray) -> str | None:
         detector = cv2.QRCodeDetector()
 
         data, points, _ = detector.detectAndDecode(img)
 
         if data:
-            return data
+            return data + "<br>processed with CV2"
 
-        return False
+        return None
+
+    @staticmethod
+    def qreader_qr_decode(img: np.ndarray) -> str | None:
+
+        qreader = QReader()
+
+        result = qreader.detect_and_decode(image=img)
+
+        if result:
+            return result + "<br>processed with QReader"
+
+        return None
+

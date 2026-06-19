@@ -1,14 +1,11 @@
-import base64
-from io import BytesIO
-import cv2
-from qreader import QReader
-
-from django.http import HttpResponse, HttpRequest
+from django.http import HttpResponse, HttpRequest, JsonResponse
+from django.utils.decorators import method_decorator
+from django.views import View
+from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import TemplateView
 import secrets
-import qrcode
-from qrcode.image.svg import SvgImage
-import numpy as np
+
+from Reader_app.services.qr_service import QRService
 
 
 class QrCreateView(TemplateView):
@@ -18,21 +15,12 @@ class QrCreateView(TemplateView):
         context = super(QrCreateView, self).get_context_data(**kwargs)
 
         token = secrets.token_urlsafe(16)
-        generated_qrcode = self.get_qrcode_svg(token)
+        generated_qrcode = QRService.get_qrcode_svg(token)
         context.update({"qrcode":generated_qrcode})
         return context
 
-    @staticmethod
-    def get_qrcode_svg(text: str) -> str:
-        factory = SvgImage
-        img = qrcode.make(text ,image_factory=factory, box_size=30)
-        stream = BytesIO()
-        img.save(stream)
-        base64_image = base64.b64encode(stream.getvalue()).decode()
-        return "data:image/svg+xml;utf8;base64," + base64_image
 
-
-class QrRead(TemplateView):
+class QrScanPostView(TemplateView):
     template_name = "qr_scan.html"
 
     def post(self, request: HttpRequest) -> HttpResponse:
@@ -41,40 +29,40 @@ class QrRead(TemplateView):
         if not image_data_url:
             return HttpResponse("No image provided")
 
-        image_data = base64.b64decode(image_data_url.split(",")[1])
-        np_arr = np.frombuffer(image_data, np.uint8)
-        img = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+        data = QRService.decode_best(image_data_url)
 
-        data = self.cv2_qr_decode(img)
-
-        if data is None:
-            data = self.qreader_qr_decode(img)
-
-        if data is None:
+        if not data:
             return HttpResponse("No QR code found!")
 
         return HttpResponse(data)
 
-    @staticmethod
-    def cv2_qr_decode(img: np.ndarray) -> str | None:
-        detector = cv2.QRCodeDetector()
 
-        data, points, _ = detector.detectAndDecode(img)
+class QrLiveScanPageView(TemplateView):
+    template_name = "qr_live_scan.html"
 
-        if data:
-            return data + "<br>processed with CV2"
 
-        return None
+@method_decorator(csrf_exempt, name="dispatch")
+class QrScanLiveView(View):
 
-    @staticmethod
-    def qreader_qr_decode(img: np.ndarray) -> str | None:
+    def post(self, request: HttpRequest) -> JsonResponse:
+        image_data_url = request.POST.get("image")
 
-        qreader = QReader()
+        if not image_data_url:
+            return JsonResponse({
+                "success": False,
+                "error": "No image provided"
+            }, status=400)
 
-        result = qreader.detect_and_decode(image=img)
+        data = QRService.decode_best(image_data_url)
 
-        if result:
-            return result + "<br>processed with QReader"
+        if not data:
+            return JsonResponse({
+                "success": True,
+                "found": False
+            })
 
-        return None
-
+        return JsonResponse({
+            "success": True,
+            "found": True,
+            "data": data
+        })

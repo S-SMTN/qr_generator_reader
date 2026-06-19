@@ -1,0 +1,39 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>QR Scan</title>
+    <link rel="stylesheet" href="{% static 'main.css' %}">
+</head>
+<body>
+
+<main class="page">
+    <section class="scanner">
+        <h1 class="scanner__title">QR Scan</h1>
+
+        <a href="{% url 'Reader_app:qrcreate' %}" class="btn btn--info top-link">
+        Go to QR Generator
+        </a>
+
+        <canvas id="myCanvas" hidden></canvas>
+        <video id="videoElement" autoplay playsinline class="scanner__video"></video>
+        <img id="my-data-uri" src="" alt="Captured QR frame" class="scanner__image">
+
+        <form id="myForm" method="post">
+            {% csrf_token %}
+            <input type="hidden" id="myImageInput" name="image">
+        </form>
+
+        <div class="scanner__actions">
+            <button type="button" id="cap" class="btn btn--primary">Capture</button>
+            <button type="button" id="recap" class="btn btn--primary is-hidden">Re-capture</button>
+            <button type="button" id="done" class="btn btn--success is-hidden">Done</button>
+        </div>
+    </section>
+</main>
+
+<script src="{% static 'qr_scan.js' %}"></script>
+</body>
+</html>

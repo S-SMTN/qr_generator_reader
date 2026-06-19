@@ -1,0 +1,28 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>QR Live Scan</title>
+    <link rel="stylesheet" href="{% static 'main.css' %}">
+</head>
+<body>
+<main class="page">
+    <section class="scanner">
+        <a href="{% url 'Reader_app:qrcreate' %}" class="btn btn--info top-link">
+            Go to QR Generator
+        </a>
+
+        <h1 class="scanner__title">QR Live Scan</h1>
+
+        <canvas id="myCanvas" hidden></canvas>
+        <video id="videoElement" autoplay playsinline class="scanner__video"></video>
+
+        <p id="result" class="subtitle"></p>
+    </section>
+</main>
+
+<script src="{% static 'qr_live_scan.js' %}"></script>
+</body>
+</html>

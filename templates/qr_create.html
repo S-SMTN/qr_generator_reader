@@ -1,0 +1,40 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>QR Code</title>
+
+    <link rel="stylesheet" href="{% static 'main.css' %}">
+</head>
+<body>
+
+<main class="page">
+
+    <section class="card">
+
+        <a class="btn btn--info" href="{% url 'Reader_app:qrread' %}">
+            Go to POST QR Scanner
+        </a>
+
+        <a class="btn btn--primary" href="{% url 'Reader_app:qrlivepage' %}">
+            Go to LIVE QR Scanner
+        </a>
+
+        <h1 class="title">QR Code</h1>
+
+        <div class="qr-wrapper">
+            <img src="{{ qrcode }}" alt="QR code">
+        </div>
+
+        <p class="subtitle">
+            Scan the QR code to see what it contains.
+        </p>
+
+    </section>
+
+</main>
+
+</body>
+</html>

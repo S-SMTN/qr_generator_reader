@@ -55,6 +55,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const response = await fetch("/api/scan-live/", {
             method: "POST",
+            credentials: "same-origin",
             headers: {
                 "X-CSRFToken": csrftoken,
             },

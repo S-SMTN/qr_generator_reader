@@ -1,5 +1,7 @@
 from django.http import HttpResponse, HttpRequest, JsonResponse
+from django.utils.decorators import method_decorator
 from django.views import View
+from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.generic import TemplateView
 import secrets
 
@@ -38,6 +40,7 @@ class QrScanPostView(TemplateView):
         return HttpResponse(f"QR-decoded data: {data[0]}, decoded with {data[1]}")
 
 
+@method_decorator(ensure_csrf_cookie, name="dispatch")
 class QrLiveScanPageView(TemplateView):
     template_name = "qr_live_scan.html"
 

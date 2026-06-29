@@ -29,7 +29,10 @@ class QrScanPostView(TemplateView):
         if not image_data_url:
             return HttpResponse("No image provided")
 
-        data = QRService.decode_best(image_data_url)
+        try:
+            data = QRService.decode_best(image_data_url)
+        except ValueError as e:
+            return HttpResponse(str(e))
 
         if not data:
             return HttpResponse("No QR code found!")

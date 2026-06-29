@@ -1,4 +1,5 @@
 import base64
+import binascii
 from io import BytesIO
 
 import cv2
@@ -12,7 +13,10 @@ class QRService:
 
     @staticmethod
     def base64_to_cv2(image_data_url: str):
-        image_data = base64.b64decode(image_data_url.split(",")[1])
+        try:
+            image_data = base64.b64decode(image_data_url.split(",")[1])
+        except (IndexError, binascii.Error):
+            raise ValueError("Invalid input data")
         np_arr = np.frombuffer(image_data, np.uint8)
         return cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
 

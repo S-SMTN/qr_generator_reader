@@ -44,7 +44,6 @@ class QrLiveScanPageView(TemplateView):
     template_name = "qr_live_scan.html"
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class QrScanLiveView(View):
 
     def post(self, request: HttpRequest) -> JsonResponse:

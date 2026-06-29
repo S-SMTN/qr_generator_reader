@@ -1,0 +1,5 @@
+.env
+.gitignore
+venv/
+db.sqlite3
+readme.md

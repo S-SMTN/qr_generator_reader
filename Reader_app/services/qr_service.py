@@ -1,4 +1,5 @@
 import base64
+import binascii
 from io import BytesIO
 
 import cv2
@@ -8,11 +9,24 @@ from qrcode.image.svg import SvgImage
 from qreader import QReader
 
 
+class QReaderSingleton:
+    _instance = None
+
+    def __new__(cls, *args, **kwargs):
+        if cls._instance is None:
+            cls._instance = QReader()
+
+        return cls._instance
+
+
 class QRService:
 
     @staticmethod
     def base64_to_cv2(image_data_url: str):
-        image_data = base64.b64decode(image_data_url.split(",")[1])
+        try:
+            image_data = base64.b64decode(image_data_url.split(",")[1])
+        except (IndexError, binascii.Error):
+            raise ValueError("Invalid input data")
         np_arr = np.frombuffer(image_data, np.uint8)
         return cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
 
@@ -20,21 +34,28 @@ class QRService:
     def decode_cv2(img: np.ndarray) -> str | None:
         detector = cv2.QRCodeDetector()
         data, _, _ = detector.detectAndDecode(img)
-        return data + " decoded with CV2" if data else None
+        return data if data else None
 
     @staticmethod
     def decode_qreader(img: np.ndarray) -> str | None:
-        qreader = QReader()
-        result = qreader.detect_and_decode(image=img)
-        return result + " decoded with QReader" if result else None
+        qreader = QReaderSingleton()
+        data = qreader.detect_and_decode(image=img)
+        return data if data else None
 
     @classmethod
-    def decode_best(cls, image_data_url: str) -> str | None:
+    def decode_best(cls, image_data_url: str) -> tuple[str,str] | None:
+        """
+        Method converts input base64 string into CV2 image and tries to decode with OpenCV at first and then with QReader.
+        It returns a tuple (decoded_data: str, decoding_method: str) or None if data not found.
+        """
         img = cls.base64_to_cv2(image_data_url)
-        return (
-            cls.decode_cv2(img)
-            or cls.decode_qreader(img)
-        )
+        decoded_data = cls.decode_cv2(img)
+        if decoded_data is not None:
+            return decoded_data, "CV2"
+        decoded_data = cls.decode_qreader(img)
+        if decoded_data is not None:
+            return decoded_data, "QReader"
+        return None
 
     @staticmethod
     def get_qrcode_svg(text: str) -> str:

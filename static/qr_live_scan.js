@@ -4,6 +4,27 @@ document.addEventListener("DOMContentLoaded", () => {
     const ctx = canvas.getContext("2d");
     const resultBox = document.getElementById("result");
 
+    function getCookie(name) {
+        let cookieValue = null;
+
+        if (document.cookie && document.cookie !== "") {
+            const cookies = document.cookie.split(";");
+
+            for (const cookie of cookies) {
+                const c = cookie.trim();
+
+                if (c.startsWith(name + "=")) {
+                    cookieValue = decodeURIComponent(c.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+
+        return cookieValue;
+    }
+
+    const csrftoken = getCookie("csrftoken");
+
     let scanning = true;
     let streamRef = null;
 
@@ -34,6 +55,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const response = await fetch("/api/scan-live/", {
             method: "POST",
+            headers: {
+                "X-CSRFToken": csrftoken,
+            },
             body: formData
         });
 

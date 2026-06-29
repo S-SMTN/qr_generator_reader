@@ -1,7 +1,5 @@
 from django.http import HttpResponse, HttpRequest, JsonResponse
-from django.utils.decorators import method_decorator
 from django.views import View
-from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import TemplateView
 import secrets
 
@@ -29,19 +27,21 @@ class QrScanPostView(TemplateView):
         if not image_data_url:
             return HttpResponse("No image provided")
 
-        data = QRService.decode_best(image_data_url)
+        try:
+            data = QRService.decode_best(image_data_url)
+        except ValueError as e:
+            return HttpResponse(str(e))
 
         if not data:
             return HttpResponse("No QR code found!")
 
-        return HttpResponse(data)
+        return HttpResponse(f"QR-decoded data: {data[0]}, decoded with {data[1]}")
 
 
 class QrLiveScanPageView(TemplateView):
     template_name = "qr_live_scan.html"
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class QrScanLiveView(View):
 
     def post(self, request: HttpRequest) -> JsonResponse:
@@ -53,7 +53,13 @@ class QrScanLiveView(View):
                 "error": "No image provided"
             }, status=400)
 
-        data = QRService.decode_best(image_data_url)
+        try:
+            data = QRService.decode_best(image_data_url)
+        except ValueError:
+            return JsonResponse({
+                "success": False,
+                "found": False
+            })
 
         if not data:
             return JsonResponse({
@@ -64,5 +70,5 @@ class QrScanLiveView(View):
         return JsonResponse({
             "success": True,
             "found": True,
-            "data": data
+            "data": f"QR-decoded data: {data[0]}, decoded with {data[1]}"
         })

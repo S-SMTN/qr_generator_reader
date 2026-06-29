@@ -1,7 +1,5 @@
 from django.http import HttpResponse, HttpRequest, JsonResponse
-from django.utils.decorators import method_decorator
 from django.views import View
-from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import TemplateView
 import secrets
 

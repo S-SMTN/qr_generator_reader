@@ -9,6 +9,16 @@ from qrcode.image.svg import SvgImage
 from qreader import QReader
 
 
+class QReaderSingleton:
+    _instance = None
+
+    def __new__(cls, *args, **kwargs):
+        if cls._instance is None:
+            cls._instance = QReader()
+
+        return cls._instance
+
+
 class QRService:
 
     @staticmethod
@@ -28,7 +38,7 @@ class QRService:
 
     @staticmethod
     def decode_qreader(img: np.ndarray) -> str | None:
-        qreader = QReader()
+        qreader = QReaderSingleton()
         result = qreader.detect_and_decode(image=img)
         return result + " decoded with QReader" if result else None
 

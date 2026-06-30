@@ -61,6 +61,9 @@ The project uses two QR decoding libraries:
 
 - Both POST and Live scanning modes are supported
 - OpenCV is used first, QReader as fallback
+- QR generator returns image in .svg format
+- By default, frontend sends images in .png format converted to base64 url string
+- Backend can also handle images in .svg format for decoding
 - QR codes are generated from random tokens
 - Fully containerized with Docker
 
@@ -71,6 +74,7 @@ The project uses two QR decoding libraries:
 - Django
 - OpenCV
 - QReader
+- CairoSVG
 - qrcode
 - Docker
 - Nginx

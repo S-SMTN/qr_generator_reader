@@ -2,6 +2,7 @@ import base64
 import binascii
 from io import BytesIO
 
+import cairosvg
 import cv2
 import numpy as np
 import qrcode
@@ -24,11 +25,27 @@ class QRService:
     @staticmethod
     def base64_to_cv2(image_data_url: str):
         try:
-            image_data = base64.b64decode(image_data_url.split(",")[1])
-        except (IndexError, binascii.Error):
+            header, payload = image_data_url.split(",")
+        except AttributeError:
             raise ValueError("Invalid input data")
+
+        image_data = base64.b64decode(payload, validate=True)
+
+        if header.startswith("data:image/svg+xml"):
+            image_data = cairosvg.svg2png(
+                bytestring=image_data,
+                background_color="white"
+            )
+        elif not header.startswith("data:image/png"):
+            raise ValueError("Invalid input data")
+
         np_arr = np.frombuffer(image_data, np.uint8)
-        return cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+        cv2_img = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+
+        if cv2_img is None:
+            raise ValueError("Unsupported or corrupted image")
+
+        return cv2_img
 
     @staticmethod
     def decode_cv2(img: np.ndarray) -> str | None:
@@ -48,17 +65,18 @@ class QRService:
         Method converts input base64 string into CV2 image and tries to decode with OpenCV at first and then with QReader.
         It returns a tuple (decoded_data: str, decoding_method: str) or None if data not found.
         """
-        img = cls.base64_to_cv2(image_data_url)
-        decoded_data = cls.decode_cv2(img)
+        cv2_img = cls.base64_to_cv2(image_data_url)
+        decoded_data = cls.decode_cv2(cv2_img)
         if decoded_data is not None:
             return decoded_data, "CV2"
-        decoded_data = cls.decode_qreader(img)
+        decoded_data = cls.decode_qreader(cv2_img)
         if decoded_data is not None:
             return decoded_data, "QReader"
         return None
 
     @staticmethod
     def get_qrcode_svg(text: str) -> str:
+        """Returns base64 string of the generated .svg image"""
         factory = SvgImage
         img = qrcode.make(text ,image_factory=factory, box_size=30)
         stream = BytesIO()

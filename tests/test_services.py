@@ -25,7 +25,9 @@ class QRServiceTest(TestCase):
         self.assertEqual(self.data, decoded[0])
 
     def test_get_qrcode_svg_returns_base64_str(self):
-        self.assertTrue(self.base64_image.startswith("data:image/svg+xml;utf8;base64,"))
+        self.assertTrue(
+            self.base64_image.startswith("data:image/svg+xml;utf8;base64,")
+        )
         self.assertEqual(len(self.base64_image.split(",")), 2)
 
     def test_decode_cv2_decodes(self):
@@ -47,4 +49,3 @@ class QRServiceTest(TestCase):
 
         with self.assertRaises(ValueError):
             QRService.base64_to_cv2("data:image/png;base64,@@@")
-

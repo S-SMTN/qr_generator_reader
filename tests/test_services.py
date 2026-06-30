@@ -3,14 +3,12 @@ from Reader_app.services.qr_service import QReaderSingleton, QRService
 from unittest import TestCase
 
 
-QREADER_BASE = QReaderSingleton()
-
-
 class QReaderSingletonTest(TestCase):
     def test_QReaderSingleton_is_singleton(self):
+        qreader_base = QReaderSingleton()
         qreader_second = QReaderSingleton()
-        self.assertEqual(id(QREADER_BASE), id(qreader_second))
-        self.assertTrue(QREADER_BASE is qreader_second)
+        self.assertEqual(id(qreader_base), id(qreader_second))
+        self.assertTrue(qreader_base is qreader_second)
 
 
 class QRServiceTest(TestCase):

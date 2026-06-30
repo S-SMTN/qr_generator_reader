@@ -2,6 +2,7 @@ import base64
 import binascii
 from io import BytesIO
 
+import cairosvg
 import cv2
 import numpy as np
 import qrcode
@@ -24,11 +25,21 @@ class QRService:
     @staticmethod
     def base64_to_cv2(image_data_url: str):
         try:
-            image_data = base64.b64decode(image_data_url.split(",")[1])
+            header, encoded = image_data_url.split(",")
+            image_data = base64.b64decode(encoded)
         except (IndexError, binascii.Error):
             raise ValueError("Invalid input data")
+
+        if header.startswith("data:image/svg+xml"):
+            image_data = cairosvg.svg2png(bytestring=image_data)
+
         np_arr = np.frombuffer(image_data, np.uint8)
-        return cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+        img = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+
+        if img is None:
+            raise ValueError("Unsupported or corrupted image")
+
+        return img
 
     @staticmethod
     def decode_cv2(img: np.ndarray) -> str | None:

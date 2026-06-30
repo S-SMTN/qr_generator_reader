@@ -1,5 +1,4 @@
 import base64
-import binascii
 from io import BytesIO
 
 import cairosvg

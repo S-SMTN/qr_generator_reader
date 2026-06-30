@@ -47,3 +47,6 @@ class QRServiceTest(TestCase):
 
         with self.assertRaises(ValueError):
             QRService.base64_to_cv2("data:image/png;base64,@@@")
+
+        with self.assertRaises(ValueError):
+            QRService.base64_to_cv2("data:image/svg+xml;base64,@@@")

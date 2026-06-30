@@ -31,7 +31,10 @@ class QRService:
             raise ValueError("Invalid input data")
 
         if header.startswith("data:image/svg+xml"):
-            image_data = cairosvg.svg2png(bytestring=image_data)
+            image_data = cairosvg.svg2png(
+                bytestring=image_data,
+                background_color="white"
+            )
 
         np_arr = np.frombuffer(image_data, np.uint8)
         img = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
